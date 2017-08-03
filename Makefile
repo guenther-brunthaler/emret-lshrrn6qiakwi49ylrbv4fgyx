@@ -1,8 +1,8 @@
 LIB = lib$(LIBNAME).a
 OBJECTS = $(SOURCES:.c=.o)
 
-LIBNAME = RENAME_ME__name_of_library_wo_lib_prefix
-INC_SUBDIR = include
+LIBNAME = lib
+INC_SUBDIR = .
 
 .PHONY: all clean
 
