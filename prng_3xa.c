@@ -3,14 +3,14 @@
 #include <assert.h>
 #include <math.h>
 
-typedef u32 (*arng)[55];
+typedef u32 arng[55];
 
 struct prng_state {
    arng k1, k2, k3;
    unsigned i;
 };
 
-static u32 gen_k1(arng a, unsigned n) {
+static u32 gen_k1(arng *a, unsigned n) {
    /* Additive Random Number Generator:
     *
     * rnd[n]:= (rnd[n - 24] + rnd[n - 55]) mod m
@@ -24,19 +24,24 @@ static u32 gen_k1(arng a, unsigned n) {
    unsigned const m_minus_1= 0xffffffff;
    unsigned n_minus_24;
    assert(DIM(*a) == 55);
-   assert(n < 55);
-   if ((n_minus_24= n + (55 - 24)) >= 55) n_minus_24-= 55;
-   assert(n_minus_24 < 55);
+   assert(n < (unsigned)DIM(*a));
+   if (
+      (n_minus_24= n + ((unsigned)DIM(*a) - 24))
+      >= (unsigned)DIM(*a)
+   ) {
+      n_minus_24-= (unsigned)DIM(*a);
+   }
+   assert(n_minus_24 < (unsigned)DIM(*a));
    return (*a)[n]= (*a)[n] + (*a)[n_minus_24] & m_minus_1;
 }
 
 static u32 gen_k3(struct prng_state *state) {
    unsigned i;
-   u32 r= gen_k1(state->k1, i= state->i);
-   r^= gen_k1(state->k2, i);
-   r^= gen_k1(state->k3, i);
-   if (++i == 55) i= 0;
-   assert(i < 55);
+   u32 r= gen_k1(&state->k1, i= state->i);
+   r^= gen_k1(&state->k2, i);
+   r^= gen_k1(&state->k3, i);
+   if (++i == (unsigned)DIM(state->k1)) i= 0;
+   assert(i < (unsigned)DIM(state->k1));
    state->i= i;
    return r;
 }
@@ -54,7 +59,7 @@ struct preseed {
    struct prng_state *state;
 };
 
-static void preseed_k1(struct preseed *p, arng a1) {
+static void preseed_k1(struct preseed *p, arng *a1) {
    unsigned i;
    u32 or= 0;
    for (i= DIM(*a1); i--; ) {
@@ -68,9 +73,9 @@ static void preseed_k1(struct preseed *p, arng a1) {
 static char const *preseed_helper_cont(void *context) {
    struct preseed *pre= context;
    pre->state->i= 0;
-   preseed_k1(pre, pre->state->k1);
-   preseed_k1(pre, pre->state->k2);
-   preseed_k1(pre, pre->state->k3);
+   preseed_k1(pre, &pre->state->k1);
+   preseed_k1(pre, &pre->state->k2);
+   preseed_k1(pre, &pre->state->k3);
    return 0;
 }
 
