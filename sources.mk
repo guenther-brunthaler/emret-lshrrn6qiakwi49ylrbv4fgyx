@@ -1,6 +1,6 @@
 SOURCES = \
 	append_rest_of_file.c \
-	prng_3xa.c \
+	prng_2xa.c \
 	prng_isaac.c \
 	prng_u32.c \
 	rand.c \

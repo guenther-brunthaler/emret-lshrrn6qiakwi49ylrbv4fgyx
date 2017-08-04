@@ -38,8 +38,8 @@ char const *prng_isaac(
    ,  resource_user body, void *context
 );
 
-/* Call body with three seeded Knuth's Additive RNGs, all XORed together.*/
-char const *prng_3xa(
+/* Call body with two seeded Knuth's Additive RNGs, all XORed together.*/
+char const *prng_2xa(
       unsigned seed /* Random seed. */
    ,  random_double *rgen /* Where to put pointer to generator function. */
    ,  void **rgen_context /* Where to put its context. */
