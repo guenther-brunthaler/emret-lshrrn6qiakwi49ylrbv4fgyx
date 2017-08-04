@@ -27,7 +27,7 @@ static u32 gen_k1(arng a, unsigned n) {
    assert(n < 55);
    if ((n_minus_24= n + (55 - 24)) >= 55) n_minus_24-= 55;
    assert(n_minus_24 < 55);
-   return (*a)[n]+= (*a)[n_minus_24] & m_minus_1;
+   return (*a)[n]= (*a)[n] + (*a)[n_minus_24] & m_minus_1;
 }
 
 static u32 gen_k3(struct prng_state *state) {
@@ -35,7 +35,8 @@ static u32 gen_k3(struct prng_state *state) {
    u32 r= gen_k1(state->k1, i= state->i);
    r^= gen_k1(state->k2, i);
    r^= gen_k1(state->k3, i);
-   if (++i >= 55) i= 0;
+   if (++i == 55) i= 0;
+   assert(i < 55);
    state->i= i;
    return r;
 }
@@ -66,6 +67,7 @@ static void preseed_k1(struct preseed *p, arng a1) {
 }
 static char const *preseed_helper_cont(void *context) {
    struct preseed *pre= context;
+   pre->state->i= 0;
    preseed_k1(pre, pre->state->k1);
    preseed_k1(pre, pre->state->k2);
    preseed_k1(pre, pre->state->k3);
