@@ -47,13 +47,6 @@ static double generate_next(void *random_context) {
    return ldexp(r + gen_k3(state), -32);
 }
 
-static void seed_k(arng a, random_u32 rng, void *random_context) {
-   u32 or= 0;
-   unsigned n;
-   for (n= DIM(*a); n--; ) or|= (*a)[n]= (*rng)(random_context);
-   (*a)[0]|= ~or & 1; /* Make first element odd if all elements are even. */
-}
-
 struct preseed {
    random_u32 rng;
    void *random_context;
@@ -62,12 +55,14 @@ struct preseed {
 
 static void preseed_k1(struct preseed *p, arng a1) {
    unsigned i;
+   u32 or= 0;
    for (i= DIM(*a1); i--; ) {
       unsigned j;
       u32 r= 0;
       for (j= 4; j--; ) r= r << 8 | (*p->rng)(p->random_context) >> 32 - 8;
-      (*a1)[i]= r;
+      or|= (*a1)[i]= r;
    }
+   (*a1)[0]|= ~or & 1; /* Make first element odd if all elements are even. */
 }
 static char const *preseed_helper_cont(void *context) {
    struct preseed *pre= context;

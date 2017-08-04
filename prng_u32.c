@@ -21,10 +21,9 @@ char const *prng_u32(
 ) {
    unsigned warmup_rounds= 5;
    struct prng_state rctx;
-   unsigned n;
    rctx.seed= (u32)seed;
    while (warmup_rounds--) (void)generate_next(&rctx);
    assert(rgen); *rgen= &generate_next;
    assert(rgen_context); *rgen_context= &rctx;
-   (*body)(context);
+   return (*body)(context);
 }
