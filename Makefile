@@ -1,7 +1,7 @@
 LIB = lib$(LIBNAME).a
 OBJECTS = $(SOURCES:.c=.o)
 
-LIBNAME = lib
+LIBNAME = emret
 INC_SUBDIR = include
 
 .PHONY: all clean
