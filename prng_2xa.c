@@ -48,6 +48,16 @@ static u32 gen_k2(struct prng_state *state) {
 static double generate_next(void *random_context) {
    double r;
    struct prng_state *state= random_context;
+   /* GCC 6.3.0 bug? Without both of the following casts, one of the following
+    * gcc-warnings will be triggered: -Wtraditional-conversion or
+    * -Wbad-function-cast. I consider both casts unnecessary, especially the
+    * second one, because since when does a function needed to be cast to its
+    * own return type??? The first one *may* be appropriate, considering the
+    * possibility that double may be 32 bit, resulting in a loss of precision.
+    * But even if this was the case: Why does gcc not also complain about the
+    * "return"-expression which has exactly the same problem? Strange!
+    * However, keeping the casts for now to make gcc happy. They certainly do
+    * not hurt. */
    r= ldexp((double)(u32)gen_k2(state), -32);
    return ldexp(r + gen_k2(state), -32);
 }
