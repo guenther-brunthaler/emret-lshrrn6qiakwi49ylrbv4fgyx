@@ -2,6 +2,7 @@
 #include <rand-uhrltlhmrn3cke0bsezw006ys.h>
 #include <assert.h>
 #include <math.h>
+#include <float.h>
 
 typedef u32 arng[55];
 
@@ -48,18 +49,32 @@ static u32 gen_k2(struct prng_state *state) {
 static double generate_next(void *random_context) {
    double r;
    struct prng_state *state= random_context;
-   /* GCC 6.3.0 bug? Without both of the following casts, one of the following
-    * gcc-warnings will be triggered: -Wtraditional-conversion or
-    * -Wbad-function-cast. I consider both casts unnecessary, especially the
-    * second one, because since when does a function needed to be cast to its
-    * own return type??? The first one *may* be appropriate, considering the
-    * possibility that double may be 32 bit, resulting in a loss of precision.
-    * But even if this was the case: Why does gcc not also complain about the
-    * "return"-expression which has exactly the same problem? Strange!
-    * However, keeping the casts for now to make gcc happy. They certainly do
-    * not hurt. */
-   r= ldexp((double)(u32)gen_k2(state), -32);
-   return ldexp(r + gen_k2(state), -32);
+   #ifdef LESS_PORTABLE_BUT_FASTER_FOR_INFERIOR_OPTIMIZERS
+      /* GCC 6.3.0 bug? Without the second cast, a -Wbad-function-cast
+       * gcc-warnings will be triggered. While the first cast may be necessary
+       * on platforms where it results in a loss of precision, casting a
+       * function to its own return type seems pointless to me. However,
+       * keeping the casts for now to make gcc happy. They certainly do not
+       * hurt. */
+      r= ldexp((double)(u32)gen_k2(state), -32);
+      return ldexp(r + gen_k2(state), -32);
+   #else
+      /* This will become horribly inefficient unless the C optimizer is able
+       * to precompute all the following "const"s ahead at compile time. At
+       * least GCC 6.3.0 *is* capable of doing so with -O2 or better. */
+      double const max_mantissa
+         = pow((double)FLT_RADIX, (double)DBL_MANT_DIG) - 1.0
+      ;
+      double const mantissa_bits= log(max_mantissa) / log(2.0);
+      double const mantissa_fullbits_dbl= floor(mantissa_bits);
+      unsigned const mantissa_fullbits= (unsigned)mantissa_fullbits_dbl;
+      int const lshift= -(int)mantissa_fullbits;
+      #define BITMASK(one, bits) ((one << bits - 1) - one << 1) + one
+      u32 const bitmask= (u32)BITMASK((u32)1, mantissa_fullbits);
+      #undef BITMASK
+      r= ldexp((double)(gen_k2(state) & bitmask), lshift);
+      return ldexp(r + (gen_k2(state) & bitmask), lshift);
+   #endif
 }
 
 struct preseed {
