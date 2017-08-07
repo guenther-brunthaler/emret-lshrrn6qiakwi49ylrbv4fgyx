@@ -48,7 +48,7 @@ static u32 gen_k2(struct prng_state *state) {
 static double generate_next(void *random_context) {
    double r;
    struct prng_state *state= random_context;
-   r= ldexp(gen_k2(state), -32);
+   r= ldexp((double)(u32)gen_k2(state), -32);
    return ldexp(r + gen_k2(state), -32);
 }
 
