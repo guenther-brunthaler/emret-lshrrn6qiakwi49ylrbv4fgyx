@@ -68,9 +68,12 @@ static double generate_next(void *random_context) {
       double const mantissa_bits= log(max_mantissa) / log(2.0);
       double const mantissa_fullbits_dbl= floor(mantissa_bits);
       unsigned const mantissa_fullbits= (unsigned)mantissa_fullbits_dbl;
-      int const lshift= -(int)mantissa_fullbits;
+      #define MINIMUM(x, y) x <= y ? x : y
+      unsigned const used_u32_bits= MINIMUM(mantissa_fullbits, 32u);
+      #undef MINIMUM
+      int const lshift= -(int)used_u32_bits;
       #define BITMASK(one, bits) ((one << bits - 1) - one << 1) + one
-      u32 const bitmask= (u32)BITMASK((u32)1, mantissa_fullbits);
+      u32 const bitmask= (u32)BITMASK((u32)1, used_u32_bits);
       #undef BITMASK
       r= ldexp((double)(gen_k2(state) & bitmask), lshift);
       return ldexp(r + (gen_k2(state) & bitmask), lshift);
