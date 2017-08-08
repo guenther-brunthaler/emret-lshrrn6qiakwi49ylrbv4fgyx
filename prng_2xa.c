@@ -66,6 +66,9 @@ static double generate_next(void *random_context) {
        * to precompute all the following "const"s ahead at compile time. At
        * least GCC 6.3.0 *is* capable of doing so with -O2 or better. */
       double const max_mantissa
+         /* Note that DBL_MANT_DIG == 53 in glibc for IEEE-754 doubles even
+          * though the mantissa only has 52 binary digits plus a sign bit. But
+          * I consider this to be a bug and it will not change the result. */
          = pow((double)FLT_RADIX, (double)DBL_MANT_DIG) - 1.0
       ;
       double const mantissa_bits= log(max_mantissa) / log(2.0);
@@ -93,7 +96,7 @@ static double generate_next(void *random_context) {
                      "mantissa_fullbits = %u\n"
                      "used_u32_bits = %u\n"
                      "lshift = %d\n"
-                     "bitmask = %u\n"
+                     "bitmask = %#x\n"
                      "\n"
                   ,  FLT_RADIX, DBL_MANT_DIG, mantissa_bits, mantissa_fullbits
                   ,  used_u32_bits, lshift, (unsigned)bitmask
