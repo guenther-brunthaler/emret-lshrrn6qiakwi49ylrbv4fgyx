@@ -3,6 +3,9 @@
 #include <assert.h>
 #include <math.h>
 #include <float.h>
+#ifdef DEBUG_PRNG_CONSTANTS
+   #include <stdio.h>
+#endif
 
 typedef u32 arng[55];
 
@@ -75,6 +78,29 @@ static double generate_next(void *random_context) {
       #define BITMASK(one, bits) ((one << bits - 1) - one << 1) + one
       u32 const bitmask= (u32)BITMASK((u32)1, used_u32_bits);
       #undef BITMASK
+      #ifdef DEBUG_PRNG_CONSTANTS
+         {
+            static int once;
+            if (!once) {
+               once= 1;
+               (void)fprintf(
+                     stderr
+                  ,  "\n\n"
+                     "DEBUG: PRNG_2xa() effective constants:\n"
+                     "FLT_RADIX = %d\n"
+                     "DBL_MANT_DIG = %d\n"
+                     "mantissa_bits = %f\n"
+                     "mantissa_fullbits = %u\n"
+                     "used_u32_bits = %u\n"
+                     "lshift = %d\n"
+                     "bitmask = %u\n"
+                     "\n"
+                  ,  FLT_RADIX, DBL_MANT_DIG, mantissa_bits, mantissa_fullbits
+                  ,  used_u32_bits, lshift, (unsigned)bitmask
+               );
+            }
+         }
+      #endif
       r= ldexp((double)(gen_k2(state) & bitmask), lshift);
       return ldexp(r + (gen_k2(state) & bitmask), lshift);
    #endif
