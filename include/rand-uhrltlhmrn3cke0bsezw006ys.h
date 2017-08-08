@@ -5,8 +5,6 @@ extern "C" {
 #endif
 
 #include <ruser-qv7m1cmnh6dr7cl740wg6ss3w.h>
-#include <stddef.h>
-#include <stdio.h>
 #include <limits.h>
 
 #if USHRT_MAX >= 0xffffffff
